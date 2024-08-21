@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Timer dengan Suara</title>
+    <!-- Link ke Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-gray-100">
+    <!-- Tombol Fullscreen -->
+    <div class="absolute top-0 right-0 p-4">
+        <button onclick="toggleFullScreen()" id="fullScreenButton" class="bg-gray-800 text-white py-2 px-4 rounded-lg shadow-md hover:bg-gray-700 transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-gray-600 focus:ring-opacity-50">
+            Masuk Fullscreen
+        </button>
+    </div>
+    
+    <!-- Kontainer -->
+    <div class="w-full max-w-3xl p-6 bg-gray-800 rounded-lg shadow-lg">
+        <!-- Logo dan Judul -->
+        <div class="text-center mb-8">
+            <img src="pcn.png" alt="Logo" class="h-48 mx-auto mb-4 rounded-full shadow-md">
+            <h1 class="text-4xl font-extrabold text-blue-400">Cemerlang Of Champions</h1>
+        </div>
+
+        <!-- Tampilan Timer -->
+        <div id="timer" class="text-6xl font-bold mb-6 text-center text-white bg-gray-700 p-4 rounded-lg shadow-md">00:00</div>
+
+        <!-- Input Waktu -->
+        <div class="mb-6 flex justify-center space-x-4">
+            <div class="flex items-center space-x-2">
+                <label for="minutes" class="text-gray-300">Menit:</label>
+                <input type="number" id="minutes" value="1" min="0" class="border border-gray-600 rounded-lg px-3 py-2 bg-gray-900 text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div class="flex items-center space-x-2">
+                <label for="seconds" class="text-gray-300">Detik:</label>
+                <input type="number" id="seconds" value="0" min="0" max="59" class="border border-gray-600 rounded-lg px-3 py-2 bg-gray-900 text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+        </div>
+
+        <!-- Pilihan Suara -->
+        <div class="mb-6 flex justify-center space-x-4">
+            <div class="flex items-center space-x-2">
+                <label for="alarmSoundSelect" class="text-gray-300">Suara Alarm:</label>
+                <select id="alarmSoundSelect" class="border border-gray-600 rounded-lg px-3 py-2 bg-gray-900 text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="beep-2.mp3">Beep</option>
+                    <option value="https://www.soundjay.com/button/beep-08.wav">Beep 2</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Tombol Aksi -->
+        <div class="flex justify-center space-x-4">
+            <button onclick="startTimer()" class="bg-blue-600 text-white py-2 px-6 rounded-lg shadow-md hover:bg-blue-700 transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500">Mulai Timer</button>
+            <button onclick="stopTimer()" class="bg-red-600 text-white py-2 px-6 rounded-lg shadow-md hover:bg-red-700 transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-red-500">Hentikan Timer</button>
+            <button onclick="resetTimer()" class="bg-gray-600 text-white py-2 px-6 rounded-lg shadow-md hover:bg-gray-700 transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-gray-500">Reset Timer</button>
+        </div>
+    </div>
+    
+    <audio id="alarmSound" src="https://www.soundjay.com/button/beep-07.wav" preload="auto"></audio>
+    <audio id="tickSound" src="https://www.soundjay.com/button/beep-08.wav" preload="auto"></audio>
+
+    <script>
+        let timerInterval;
+        let tickInterval;
+        let timeRemaining = 0;
+        let initialMinutes = 1;
+        let initialSeconds = 0;
+
+        function startTimer() {
+            let minutesInput = parseInt(document.getElementById('minutes').value) || 0;
+            let secondsInput = parseInt(document.getElementById('seconds').value) || 0;
+            initialMinutes = minutesInput;
+            initialSeconds = secondsInput;
+            timeRemaining = (minutesInput * 60) + secondsInput;
+            updateDisplay();
+            if (timerInterval) {
+                clearInterval(timerInterval);
+            }
+            if (tickInterval) {
+                clearInterval(tickInterval);
+            }
+            timerInterval = setInterval(countDown, 1000);
+            tickInterval = setInterval(playTickSound, 5000); // Play tick sound every 5 seconds
+        }
+
+        function stopTimer() {
+            clearInterval(timerInterval);
+            clearInterval(tickInterval);
+            document.getElementById('timer').innerText = "00:00";
+        }
+
+        function resetTimer() {
+            document.getElementById('minutes').value = initialMinutes;
+            document.getElementById('seconds').value = initialSeconds;
+            timeRemaining = (initialMinutes * 60) + initialSeconds;
+            stopTimer();
+            updateDisplay();
+        }
+
+        function countDown() {
+            if (timeRemaining <= 0) {
+                clearInterval(timerInterval);
+                clearInterval(tickInterval);
+                document.getElementById('alarmSound').play();
+                document.getElementById('timer').innerText = "00:00";
+                return;
+            }
+            timeRemaining--;
+            updateDisplay();
+        }
+
+        function playTickSound() {
+            document.getElementById('tickSound').play();
+        }
+
+        function updateDisplay() {
+            let minutes = Math.floor(timeRemaining / 60);
+            let seconds = timeRemaining % 60;
+            minutes = minutes < 10 ? '0' + minutes : minutes;
+            seconds = seconds < 10 ? '0' + seconds : seconds;
+            document.getElementById('timer').innerText = minutes + ':' + seconds;
+        }
+
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+                document.getElementById('fullScreenButton').innerText = 'Keluar Fullscreen';
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                    document.getElementById('fullScreenButton').innerText = 'Masuk Fullscreen';
+                }
+            }
+        }
+
+        // Update alarm sound when selecting a new sound
+        document.getElementById('alarmSoundSelect').addEventListener('change', function() {
+            document.getElementById('alarmSound').src = this.value;
+        });
+    </script>
+</body>
+</html>
